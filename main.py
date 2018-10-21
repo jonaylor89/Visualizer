@@ -33,6 +33,34 @@ class Terrain(object):
             ] for n, x in enumerate(self.xpoints) for m, y in enumerate(self.ypoints)
         ], dtype=np.float32)
 
+        faces = []
+        colors = []
+
+        for m in range(self.nfaces - 1):
+            yoff = m * self.nfaces
+
+            for n in range(self.nfaces - 1):
+                faces.append([n + yoff, yoff + n + self.nfaces,
+                              yoff + n + self.nfaces + 1])
+                faces.append([n + yoff, yoff + n + 1, yoff + n +  self.nfaces + 1])
+                colors.append([0, 0, 0, 0])
+
+
+        faces = np.array(faces)
+        colors = np.array(colors)
+
+        self.mesh1 = gl.GLMeshItem(
+            vertexes=verts,
+            faces=faces,
+            faceColors=colors,
+            smooth=False,
+            drawEdges=True
+        )
+
+        self.mesh1.setGLOptions('additive')
+
+        self.window.addItem(self.mesh1)
+
 
     def start(self):
         if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
@@ -43,3 +71,4 @@ class Terrain(object):
 if __name__ == '__main__':
     t = Terrain()
     t.start()
+
