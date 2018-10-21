@@ -8,6 +8,7 @@ pyopengl = "*"
 pyqtgraph = "*"
 opensimplex = "*"
 "pyqt5" = "*"
+pyaudio = "*"
 
 [dev-packages]
 

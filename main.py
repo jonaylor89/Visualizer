@@ -1,7 +1,11 @@
 
 from pyqtgraph.Qt import QtCore, QtGui
 from opensimplex import OpenSimplex
+
 import pyqtgraph.opengl as gl
+
+import pyaudio
+import struct
 
 import numpy as np
 import sys
@@ -15,82 +19,87 @@ class Terrain(object):
         self.window.setGeometry(0, 110, 1920, 1080)
         self.window.show()
         self.window.setWindowTitle('GL Mesh Terrain')
-        self.window.setCameraPosition(distance=30, elevation=8)
+        self.window.setCameraPosition(distance=30, elevation=12)
 
-        # grid = gl.GLGridItem()
-        # grid.scale(2, 2, 2)
-
-        # self.window.addItem(grid)
-
-        self.nsteps = 1
-        self.ypoints = range(-20, 22, self.nsteps)
-        self.xpoints = range(-20, 22, self.nsteps)
-        self.nfaces = len(self.ypoints)
-        self.noise = OpenSimplex()
+        self.nsteps = 1.3
         self.offset = 0
+        self.ypoints = range(-20, 20, self.nsteps)
+        self.xpoints = range(-20, 20, self.nsteps)
+        self.nfaces = len(self.ypoints)
 
-        verts = np.array([
-            [
-                x, y, 1.5 * self.noise.noise2d(x=n / 5, y=m / 5)
-            ] for n, x in enumerate(self.xpoints) for m, y in enumerate(self.ypoints)
-        ], dtype=np.float32)
+        self.RATE = 44100
+        self.CHUNK = len(self.xpoints) * len(self.ypoints)
 
-        faces = []
-        colors = []
+        self.p = pyaudio.PyAudio()
+        self.stream = self.p.open(
+            format=pyaudio.paInt16,
+            channels=1,
+            rate=self.RATE,
+            input=True,
+            output=True,
+            frames_per_buffer=self.CHUNK,
+        )
 
-        for m in range(self.nfaces - 1):
-            yoff = m * self.nfaces
+        self.noise = OpenSimplex()
 
-            for n in range(self.nfaces - 1):
-                faces.append([n + yoff, yoff + n + self.nfaces,
-                              yoff + n + self.nfaces + 1])
-                faces.append([n + yoff, yoff + n + 1, yoff + n +  self.nfaces + 1])
-                colors.append([0, 0, 0, 0])
-                colors.append([0, 0, 0, 0])
-
-
-        faces = np.array(faces)
-        colors = np.array(colors)
+        verts, faces, colors = self.mesh()
 
         self.mesh1 = gl.GLMeshItem(
             vertexes=verts,
             faces=faces,
             faceColors=colors,
             smooth=False,
-            drawEdges=True
+            drawEdges=True,
         )
 
         self.mesh1.setGLOptions('additive')
 
         self.window.addItem(self.mesh1)
 
+    
+    def mesh(self, offset=0, height=2.5, wf_data=None):
 
-    def update(self):
- 
         verts = np.array([
             [
-                x, y, 2.5 * self.noise.noise2d(x=n / 5 + self.offset, y=m / 5 + self.offset)
-            ] for n, x in enumerate(self.xpoints) for m, y in enumerate(self.ypoints)
+                x, y, 2.5 * self.noise.noise2d(x=xid / 5 + offset, y=yid / 5 + offset)
+            ] for xid, x in enumerate(self.xpoints) for yid, y in enumerate(self.ypoints)
         ], dtype=np.float32)
 
         faces = []
         colors = []
 
-        for m in range(self.nfaces - 1):
-            yoff = m * self.nfaces
+        for yid in range(self.nfaces - 1):
+            yoff = yid * self.nfaces
 
-            for n in range(self.nfaces - 1):
-                faces.append([n + yoff, yoff + n + self.nfaces,
-                              yoff + n + self.nfaces + 1])
-                faces.append([n + yoff, yoff + n + 1, yoff + n +  self.nfaces + 1])
-                colors.append([n / self.nfaces, 1 - n / self.nfaces,
-                               m / self.nfaces, 0.7])
-                colors.append([n / self.nfaces, 1 - n / self.nfaces,
-                               m / self.nfaces, 0.8])
+            for xid in range(self.nfaces - 1):
+                faces.append([xid + yoff,
+                              yoff + xid + self.nfaces,
+                              yoff + xid + self.nfaces + 1])
+
+                faces.append([xid + yoff,
+                              yoff + xid + 1,
+                              yoff + xid +  self.nfaces + 1])
+
+                colors.append([xid / self.nfaces,
+                               1 - xid / self.nfaces,
+                               yid / self.nfaces, 0.7])
+
+                colors.append([xid / self.nfaces,
+                               1 - xid / self.nfaces,
+                               yid / self.nfaces, 0.8])
 
 
         faces = np.array(faces)
         colors = np.array(colors)
+
+        return verts, faces, colors
+
+
+    def update(self):
+
+        wf_data = self.stream.read(self.CHUNK)
+
+        verts, faces, colors = self.mesh(offset=self.offset, wf_data=wf_data)
 
         self.mesh1.setMeshData(
             vertexes=verts,
