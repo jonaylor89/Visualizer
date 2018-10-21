@@ -17,14 +17,15 @@ class Terrain(object):
         self.app = QtGui.QApplication(sys.argv)
         self.window = gl.GLViewWidget()
         self.window.setGeometry(0, 110, 1920, 1080)
+        self.window.setFixedSize(WidthOfParent, HeightOfParent)
         self.window.show()
         self.window.setWindowTitle('GL Mesh Terrain')
         self.window.setCameraPosition(distance=30, elevation=12)
 
         self.nsteps = 1.3
         self.offset = 0
-        self.ypoints = range(-20, 20, self.nsteps)
-        self.xpoints = range(-20, 20, self.nsteps)
+        self.ypoints = np.arange(-20, 20 + self.nsteps, self.nsteps)
+        self.xpoints = np.arange(-20, 20 + self.nsteps, self.nsteps)
         self.nfaces = len(self.ypoints)
 
         self.RATE = 44100
@@ -59,9 +60,21 @@ class Terrain(object):
     
     def mesh(self, offset=0, height=2.5, wf_data=None):
 
+        if wf_data:
+
+            wf_data = struct.unpack(str(2 * self.CHUNK) + 'B', wf_data)
+            wf_data = np.array(wf_data, dtype='b')[::2] + 128
+            wf_data = np.array(wf_data, dtype='int32') - 128
+            wf_data = wf_data * 0.04
+            wf_data = wf_data.reshape((len(self.xpoints), len(self.ypoints)))
+
+        else:
+            wf_data = np.array([1] * 1024)
+            wf_data = wf_data.reshape((len(self.xpoints), len(self.ypoints)))
+
         verts = np.array([
             [
-                x, y, 2.5 * self.noise.noise2d(x=xid / 5 + offset, y=yid / 5 + offset)
+                x, y, wf_data[xid][yid] * self.noise.noise2d(x=xid / 5 + offset, y=yid / 5 + offset)
             ] for xid, x in enumerate(self.xpoints) for yid, y in enumerate(self.ypoints)
         ], dtype=np.float32)
 
@@ -112,7 +125,7 @@ class Terrain(object):
 
     def start(self):
         if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
-            QtGui.QApplication.instance().exec_()
+            self.app.exec_()
 
 
     def animation(self):
