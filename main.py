@@ -22,6 +22,18 @@ class Terrain(object):
 
         self.window.addItem(grid)
 
+        self.nsteps = 1
+        self.ypoints = range(-20, 22, self.nsteps)
+        self.xpoints = range(-20, 22, self.nsteps)
+        self.nfaces = len(self.ypoints)
+
+        verts = np.array([
+            [
+                x, y, 0
+            ] for n, x in enumerate(self.xpoints) for m, y in enumerate(self.ypoints)
+        ], dtype=np.float32)
+
+
     def start(self):
         if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
             QtGui.QApplication.instance().exec_()
