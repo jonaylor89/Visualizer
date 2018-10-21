@@ -26,12 +26,12 @@ class Terrain(object):
         self.ypoints = range(-20, 22, self.nsteps)
         self.xpoints = range(-20, 22, self.nsteps)
         self.nfaces = len(self.ypoints)
-        self.tmp = OpenSimplex()
+        self.noise = OpenSimplex()
         self.offset = 0
 
         verts = np.array([
             [
-                x, y, 1.5 * self.tmp.noise2d(x=n / 5, y=m / 5)
+                x, y, 1.5 * self.noise.noise2d(x=n / 5, y=m / 5)
             ] for n, x in enumerate(self.xpoints) for m, y in enumerate(self.ypoints)
         ], dtype=np.float32)
 
@@ -69,7 +69,7 @@ class Terrain(object):
  
         verts = np.array([
             [
-                x, y, 2.5 * self.tmp.noise2d(x=n / 5 + self.offset, y=m / 5 + self.offset)
+                x, y, 2.5 * self.noise.noise2d(x=n / 5 + self.offset, y=m / 5 + self.offset)
             ] for n, x in enumerate(self.xpoints) for m, y in enumerate(self.ypoints)
         ], dtype=np.float32)
 
