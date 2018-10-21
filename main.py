@@ -69,7 +69,7 @@ class Terrain(object):
  
         verts = np.array([
             [
-                x, y, 1.5 * self.tmp.noise2d(x=n / 5 + self.offset, y=m / 5 + self.offset)
+                x, y, 2.5 * self.tmp.noise2d(x=n / 5 + self.offset, y=m / 5 + self.offset)
             ] for n, x in enumerate(self.xpoints) for m, y in enumerate(self.ypoints)
         ], dtype=np.float32)
 
