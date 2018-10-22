@@ -17,7 +17,7 @@ class Terrain(object):
         self.app = QtGui.QApplication(sys.argv)
         self.window = gl.GLViewWidget()
         self.window.setGeometry(0, 110, 1920, 1080)
-        self.window.setFixedSize(WidthOfParent, HeightOfParent)
+        # self.window.setFixedSize(WidthOfParent, HeightOfParent)
         self.window.show()
         self.window.setWindowTitle('GL Mesh Terrain')
         self.window.setCameraPosition(distance=30, elevation=12)
@@ -32,14 +32,14 @@ class Terrain(object):
         self.CHUNK = len(self.xpoints) * len(self.ypoints)
 
         self.p = pyaudio.PyAudio()
-        self.stream = self.p.open(
-            format=pyaudio.paInt16,
-            channels=1,
-            rate=self.RATE,
-            input=True,
-            output=True,
-            frames_per_buffer=self.CHUNK,
-        )
+        # self.stream = self.p.open(
+        #     format=pyaudio.paInt16,
+        #     channels=1,
+        #     rate=self.RATE,
+        #     input=True,
+        #     output=True,
+        #     frames_per_buffer=self.CHUNK,
+        # )
 
         self.noise = OpenSimplex()
 
@@ -110,9 +110,10 @@ class Terrain(object):
 
     def update(self):
 
-        wf_data = self.stream.read(self.CHUNK)
+        # wf_data = self.stream.read(self.CHUNK)
 
-        verts, faces, colors = self.mesh(offset=self.offset, wf_data=wf_data)
+        # verts, faces, colors = self.mesh(offset=self.offset, wf_data=wf_data)
+        verts, faces, colors = self.mesh(offset=self.offset)
 
         self.mesh1.setMeshData(
             vertexes=verts,
