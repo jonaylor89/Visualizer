@@ -28,6 +28,8 @@ class Terrain(object):
         self.xpoints = np.arange(-20, 20 + self.nsteps, self.nsteps)
         self.nfaces = len(self.ypoints)
 
+        self.amp_mult = 2.5
+
         self.RATE = 44100
         self.CHUNK = len(self.xpoints) * len(self.ypoints)
 
@@ -74,7 +76,7 @@ class Terrain(object):
 
         verts = np.array([
             [
-                x, y, wf_data[xid][yid] * self.noise.noise2d(x=xid / 5 + offset, y=yid / 5 + offset)
+                x, y, self.amp_mult * wf_data[xid][yid] * self.noise.noise2d(x=xid / 5 + offset, y=yid / 5 + offset)
             ] for xid, x in enumerate(self.xpoints) for yid, y in enumerate(self.ypoints)
         ], dtype=np.float32)
 
@@ -112,7 +114,8 @@ class Terrain(object):
 
         wf_data = self.stream.read(self.CHUNK)
 
-        verts, faces, colors = self.mesh(offset=self.offset, wf_data=wf_data)
+        # verts, faces, colors = self.mesh(offset=self.offset, wf_data=wf_data)
+        verts, faces, colors = self.mesh(offset=self.offset)
 
         self.mesh1.setMeshData(
             vertexes=verts,
