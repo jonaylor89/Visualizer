@@ -18,7 +18,8 @@ class Terrain(object):
         self.window = gl.GLViewWidget()
         self.window.setGeometry(0, 110, 1920, 1080)
         # self.window.setFixedSize(WidthOfParent, HeightOfParent)
-        self.window.show() self.window.setWindowTitle('GL Mesh Terrain')
+        self.window.show()
+        self.window.setWindowTitle('GL Mesh Terrain')
         self.window.setCameraPosition(distance=30, elevation=12)
 
         self.nsteps = 1.3
